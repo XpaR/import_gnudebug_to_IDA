@@ -1,19 +1,18 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 import sys
-import idaapi
-import idautils
-import idc
+#import idaapi
+#import idautils
+#import idc
+from elftools.elf.elffile import ELFFile
 
 SYMBOLS_FILE = "symbolsfile.txt"
- 
-if __name__ == "__main__":
-    main()
 
- 
-#if(len(sys.argv) < 2):
-#    print("usage: {0} <input file>".format(sys.argv[0]))
-#    exit(1)
- 
+def enable_python_disable_IDC():
+    load_and_run_plugin("python", 3)
+    
+def enable_IDC_disable_python():
+    load_and_run_plugin("python", 4)
+
 #input file must contain only the <segment:offset> [<number>] <function name> <some text>(ex: 0000:0013 [1] _main)
  
 def _fix_line(strn):
@@ -64,6 +63,26 @@ def do_rename(l):
     idc.MakeCode(eaaddr)
     idc.MakeFunction(eaaddr)
     idc.MakeNameEx(int(straddr, 16), strname, idc.SN_NOWARN)
+    
+def get_gnu_debugdata(filename):
+    print("Trying to fetch debug data from .gnu_debugdata section of {f}".format(f=filename))
+    with open(filename, "rb") as f1:
+        elffile = ELFFile(f1)
+        section = elffile.get_section_by_name(".gnu_debugdata")
+        if section is None:
+            print("Could not find the .gnu_debugdata section, exiting...")
+        else:
+            for subsection in section.elffile.iter_sections():
+                print(subsection.name)
+                print(subsection.data())
+                
+            
+            return section.data() # This gives a compressed ELF file with all the symbols in it. ELF binary with only the symbol & headers.
 
 def main():
-    do_rename(read_symbols_from_text())
+    for filename in sys.argv[1:]:
+        get_gnu_debugdata(filename)
+    #do_rename(read_symbols_from_text())
+    
+if __name__ == "__main__":
+    main()
