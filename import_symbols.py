@@ -3,13 +3,16 @@ import sys
 import idaapi
 import idautils
 import idc
+
+SYMBOLS_FILE = "symbolsfile.txt"
  
 if __name__ == "__main__":
     main()
-    
-if(len(sys.argv) < 2):
-    print("usage: {0} <input file>".format(sys.argv[0]))
-    exit(1)
+
+ 
+#if(len(sys.argv) < 2):
+#    print("usage: {0} <input file>".format(sys.argv[0]))
+#    exit(1)
  
 #input file must contain only the <segment:offset> [<number>] <function name> <some text>(ex: 0000:0013 [1] _main)
  
@@ -24,7 +27,7 @@ def _fix_line(strn):
     return (new_str[:result[0]] + new_str[result[1]+1:])
 
 def read_symbols_from_text():
-    file=open(sys.argv[1],"r+")
+    file=open(SYMBOLS_FILE,"r+")
     org_file=file.read()
  
     file.close()
