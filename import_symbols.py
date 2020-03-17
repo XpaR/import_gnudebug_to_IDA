@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import sys
-#import idaapi
-#import idautils
-#import idc
+import idaapi
+import idautils
+import idc
 from elftools.elf.elffile import ELFFile
 
 SYMBOLS_FILE = "symbolsfile.txt"
@@ -25,6 +25,10 @@ def _fix_line(strn):
     new_str=strn[:strn.find("Type: ")]
     return (new_str[:result[0]] + new_str[result[1]+1:])
 
+
+"""
+Read the symbols from a file containing this format <segment:offset> [<number>] <function name> <some text>(ex: 0000:0013 [1] _main)
+"""
 def read_symbols_from_text():
     file=open(SYMBOLS_FILE,"r+")
     org_file=file.read()
@@ -45,6 +49,7 @@ def read_symbols_from_text():
     
     return '\n'.join(result)
 
+
 """
 Purpose: Rename the symbols
 Parameters:
@@ -64,6 +69,12 @@ def do_rename(l):
     idc.MakeFunction(eaaddr)
     idc.MakeNameEx(int(straddr, 16), strname, idc.SN_NOWARN)
     
+
+"""
+Purpose: get the .gnu_debugdata section from the executable.
+Parameters:
+    filename -> The filename to extract the .gnu_debugdata section from.
+"""
 def get_gnu_debugdata(filename):
     print("Trying to fetch debug data from .gnu_debugdata section of {f}".format(f=filename))
     with open(filename, "rb") as f1:
@@ -72,12 +83,11 @@ def get_gnu_debugdata(filename):
         if section is None:
             print("Could not find the .gnu_debugdata section, exiting...")
         else:
-            for subsection in section.elffile.iter_sections():
-                print(subsection.name)
-                print(subsection.data())
-                
-            
+        #    for subsection in section.elffile.iter_sections():
+        #        print(subsection.name)
+        #        print(subsection.data())   
             return section.data() # This gives a compressed ELF file with all the symbols in it. ELF binary with only the symbol & headers.
+
 
 def main():
     for filename in sys.argv[1:]:
